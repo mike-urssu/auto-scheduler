@@ -19,14 +19,14 @@ fun main() {
     val startDate = "2021-03-28"
     val date = LocalDate.parse(startDate.subSequence(0, startDate.length), DateTimeFormatter.ISO_DATE)
 
-    val week = 4
+    val week = 1
 
     val midDates = arrayListOf<MidDateDto>()       // 미드 날짜
-    val midDateDto = MidDateDto("2021-04-05", "솜사탕")
+    val midDateDto = MidDateDto("2021-03-30", "솜사탕")
     midDates.add(midDateDto)
 
     val restDates = arrayListOf<RestDateDto>()     // 휴무 날짜
-    val restDateDto = RestDateDto("2021-04-05", "초콜릿")
+    val restDateDto = RestDateDto("2021-03-31", "초콜릿")
     restDates.add(restDateDto)
 
     /**
@@ -37,5 +37,6 @@ fun main() {
     scheduler.setMidDates(midDates)
     scheduler.setRestDates(restDates)
 
+    scheduler.printScheduler()
 
 }

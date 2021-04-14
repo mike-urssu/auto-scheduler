@@ -30,4 +30,14 @@ class Scheduler(
         }
     }
 
+    fun printScheduler() {
+        for (i in 0 until week) {
+            for (j in 0 until 7) {
+                val today = date.plusDays((i * 7 + j).toLong())
+                println("date: $today")
+                val todayEmployee = schedules[today]!!
+                print("open: ${todayEmployee.open}   mid: ${todayEmployee.mid}    close: ${todayEmployee.close}    rest: ${todayEmployee.rest}")
+            }
+        }
+    }
 }
