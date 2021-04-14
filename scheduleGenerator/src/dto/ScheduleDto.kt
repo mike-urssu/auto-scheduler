@@ -1,4 +1,4 @@
-package schedule
+package dto
 
 import java.time.LocalDate
 

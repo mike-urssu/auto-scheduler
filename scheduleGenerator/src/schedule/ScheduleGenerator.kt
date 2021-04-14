@@ -1,5 +1,8 @@
 package schedule
 
+import dto.FixedMidDateDto
+import dto.FixedRestDateDto
+import dto.ScheduleDto
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -24,9 +27,17 @@ class ScheduleGenerator(
 }
 
 fun main() {
-    val today = "2021-04-14"
+    val today = "2021-03-28"
     val startDate = LocalDate.parse(today.subSequence(0, today.length), DateTimeFormatter.ISO_DATE)
     val names = listOf("a", "b", "c")
+
+    val mids = arrayListOf<FixedMidDateDto>()
+    val fixedMidDateDto = FixedMidDateDto("2021-04-05", "a")
+    mids.add(fixedMidDateDto)
+
+    val fixedRestDateDto = FixedRestDateDto("2021-04-05", "a")
+    mids.add(fixedMidDateDto)
+
 
     val scheduleGenerator = ScheduleGenerator(startDate, 4, names)
     scheduleGenerator.initSchedule()
