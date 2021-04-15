@@ -1,6 +1,6 @@
 package schedule
 
-class TodayEmployees {
+class TodaySchedule {
     var open: String = ""
     var mid: String = ""
     var close: String = ""

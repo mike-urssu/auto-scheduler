@@ -1,7 +1,7 @@
 package schedule
 
-import dto.MidDateDto
-import dto.RestDateDto
+import dto.MidScheduleDto
+import dto.RestScheduleDto
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -19,24 +19,33 @@ fun main() {
     val startDate = "2021-03-28"
     val date = LocalDate.parse(startDate.subSequence(0, startDate.length), DateTimeFormatter.ISO_DATE)
 
-    val week = 1
+    val week = 4
 
-    val midDates = arrayListOf<MidDateDto>()       // 미드 날짜
-    val midDateDto = MidDateDto("2021-03-30", "솜사탕")
-    midDates.add(midDateDto)
+    val midSchedules = arrayListOf<MidScheduleDto>()       // 미드 날짜
+    val midDateDto = MidScheduleDto("2021-03-30", "솜사탕")
+    val midDateDto1 = MidScheduleDto("2021-04-06", "초콜릿")
+    val midDateDto2 = MidScheduleDto("2021-04-13", "달고나")
+    val midDateDto3 = MidScheduleDto("2021-04-20", "솜사탕")
+    midSchedules.add(midDateDto)
+    midSchedules.add(midDateDto1)
+    midSchedules.add(midDateDto2)
+    midSchedules.add(midDateDto3)
 
-    val restDates = arrayListOf<RestDateDto>()     // 휴무 날짜
-    val restDateDto = RestDateDto("2021-03-31", "초콜릿")
-    restDates.add(restDateDto)
+    val restSchedules = arrayListOf<RestScheduleDto>()     // 휴무 날짜
+    val restDateDto = RestScheduleDto("2021-03-31", "초콜릿")
+    val restDateDto1 = RestScheduleDto("2021-04-01", "솜사탕")
+    restSchedules.add(restDateDto)
+    restSchedules.add(restDateDto1)
 
     /**
-     * Schedule 생성
+     * Scheduler 생성
      */
-    val scheduler = Scheduler(employees, date, week)
+    val scheduler = Scheduler(names, employees, date, week)
     scheduler.init()
-    scheduler.setMidDates(midDates)
-    scheduler.setRestDates(restDates)
+    scheduler.setSchedules(midSchedules, restSchedules)
 
+    /**
+     * Scheduler 출력
+     */
     scheduler.printScheduler()
-
 }
