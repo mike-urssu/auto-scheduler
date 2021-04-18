@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter
 
 fun main() {
     val today = LocalDateTime.now().toLocalDate()
-
     val expiration = "2021-05-01"
     val expireAt = LocalDate.parse(expiration.subSequence(0, expiration.length), DateTimeFormatter.ISO_DATE)
 
@@ -16,11 +15,7 @@ fun main() {
         return
     }
 
-    println("이번달 스케줄표를 생성합니다.")
     val scheduler = Scheduler()
-    println("스케줄표를 생성 중입니다.")
     scheduler.setSchedules()
-    println("스케줄표를 출력합니다.")
-//    scheduler.printScheduler()
-    println("스케줄표를 작성을 완료하였습니다.")
+    scheduler.printScheduler()
 }
