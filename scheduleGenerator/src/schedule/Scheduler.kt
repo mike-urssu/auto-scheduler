@@ -52,33 +52,12 @@ class Scheduler {
             while (!setWeekSchedules(i));
     }
 
-//    private fun setSchedule(date: Int) {
-//        val random = Random
-//        val today = startDate.plusDays(date.toLong())
-//        println("today: $today")
-//        printEmployeesStatus()
-//        val schedule = schedules[today]!!
-//
-//        if (schedule.mid.isNotEmpty())
-//            employees[schedule.mid]!!.used = true
-//        if (schedule.rest.isNotEmpty())
-//            employees[schedule.rest]!!.used = true
-//
-//        setTodayOpen(schedule, random)
-//
-//        setTodayClose(schedule, random)
-//        println()
-//    }
-
     private fun setWeekSchedules(week: Int): Boolean {
         resetEmployeesWorkCount()
 
-//        printEmployeesStatus()
-//        println()
-
         for (i in 0 until 7) {
             if (!isValid(i)) {
-                rollback()
+                rollback(week)
                 return false
             }
 
@@ -93,26 +72,21 @@ class Scheduler {
             setTodayOpen(schedule)
 
             if (close.isNotEmpty())
-                employees[schedules[date.plusDays((1).toLong())]!!.close]!!.used = false
+                employees[schedules[date.minusDays((1).toLong())]!!.close]!!.used = false
 
             setTodayClose(schedule)
 
             employees[schedule.open]!!.used = false
             if (schedule.rest.isNotEmpty())
                 employees[schedule.rest]!!.used = false
-
-            print("i: $i    ")
-            printEmployeesStatus()
         }
         return true
     }
 
 
     private fun resetEmployeesWorkCount() {
-        for (name in employees.keys) {
+        for (name in employees.keys)
             employees[name]!!.count = 0
-//            employees[name]!!.used = false
-        }
     }
 
     private fun isValid(i: Int): Boolean {
@@ -124,13 +98,16 @@ class Scheduler {
         }
     }
 
-    private fun rollback() {
+    private fun rollback(week: Int) {
         resetEmployeesWorkCount()
         for (name in employees.keys)
             employees[name]!!.used = false
 
+        close = ""
         if (week != 0) {
             val lastSaturday = startDate.plusDays((week * 7 - 1).toLong())
+            close = schedules[lastSaturday]!!.close
+
             val lastSaturdaySchedule = schedules[lastSaturday]!!
             employees[lastSaturdaySchedule.close]!!.used = true
         }
@@ -141,11 +118,10 @@ class Scheduler {
             val r = Random.nextInt(employees.size)
             val name = names[r]
 
-            if (!employees[name]!!.used && name != close && employees[name]!!.count < 5) {
+            if (!employees[name]!!.used && name != close && employees[name]!!.count < 5 && name != close) {
                 employees[name]!!.used = true
                 employees[name]!!.count++
                 schedule.open = name
-                println("open: $name")
                 break
             }
         }
@@ -162,10 +138,10 @@ class Scheduler {
                 employees[name]!!.count++
                 schedule.close = name
                 close = name
-                println("close: $close")
                 break
             }
         }
+
         employees[schedule.open]!!.used = false
         if (schedule.rest.isNotEmpty())
             employees[schedule.rest]!!.used = false
@@ -179,13 +155,6 @@ class Scheduler {
         return false
     }
 
-    private fun printEmployeesStatus() {
-        for (name in employees.keys)
-            println("$name      used: ${employees[name]!!.used}     count: ${employees[name]!!.count}")
-        println()
-        println()
-    }
-
     fun printScheduler() {
         for (i in 0 until week) {
             for (j in 0 until 7) {
@@ -196,9 +165,9 @@ class Scheduler {
                 println()
             }
 
-//            for (name in employees.keys) {
-//                print("${employees[name]!!.name}: ${employees[name]!!.count}    ")
-//            }
+            for (name in employees.keys) {
+                print("${employees[name]!!.name}: ${employees[name]!!.count}    ")
+            }
             println()
             println()
         }
