@@ -5,17 +5,21 @@ import java.time.LocalDate
 import kotlin.random.Random
 
 class Scheduler {
-    private var schedules: LinkedHashMap<LocalDate, TodaySchedule>
     private var dataReader: DataReader = DataReader()
     private val names = dataReader.getNames()
     private var employees = HashMap<String, Employee>()
     private var startDate = dataReader.getStartDate()
     private var week = dataReader.getWeek()
+
+    private var schedules: LinkedHashMap<LocalDate, TodaySchedule>
+    private var tempEmployees = HashMap<String, Employee>()
     private var close = ""
 
     init {
-        for (name in names)
+        for (name in names) {
             employees[name] = Employee(name)
+            tempEmployees[name] = Employee(name)
+        }
         schedules = linkedMapOf()
         for (i in 0 until week * 7)
             schedules[startDate.plusDays(i.toLong())] = TodaySchedule()
@@ -44,26 +48,19 @@ class Scheduler {
     }
 
     private fun setMonthSchedules() {
-        for (i in 0 until week * 7)
-            setSchedule(i)
-
-//        while (!setWeekSchedules(date));
-    }
-
-    private fun setSchedule(date: Int) {
-
+        for (i in 0 until week)
+            while (!setWeekSchedules(i));
     }
 
     private fun setWeekSchedules(week: Int): Boolean {
-        val random = Random
-        resetEmployeesWorkCount(week)
-
-        printEmployeesStatus()
-        println()
+        resetEmployeesWorkCount()
 
         for (i in 0 until 7) {
-            if (!isValid(i))
+            if (!isValid(i)) {
+                rollback(week)
                 return false
+            }
+
             val date = startDate.plusDays((week * 7 + i).toLong())
 
             val schedule = schedules[date]!!
@@ -72,34 +69,24 @@ class Scheduler {
             if (schedule.rest.isNotEmpty())
                 employees[schedule.rest]!!.used = true
 
-            setTodayOpen(schedule, random)
+            setTodayOpen(schedule)
 
             if (close.isNotEmpty())
-                employees[schedules[date.plusDays((1).toLong())]!!.close]!!.used = false
+                employees[schedules[date.minusDays((1).toLong())]!!.close]!!.used = false
 
-            setTodayClose(schedule, random)
+            setTodayClose(schedule)
 
             employees[schedule.open]!!.used = false
             if (schedule.rest.isNotEmpty())
                 employees[schedule.rest]!!.used = false
-
-            print("i: $i    ")
-            printEmployeesStatus()
         }
         return true
     }
 
-    private fun resetEmployeesWorkCount(week: Int) {
-        for (name in employees.keys) {
-            employees[name]!!.count = 0
-//            employees[name]!!.used = false
-        }
 
-//        if (week != 0) {
-//            val schedule = schedules[startDate.plusDays((week * 7 - 1).toLong())]
-//            val name = employees[schedule!!.close]!!.name
-//            employees[name]!!.used = true
-//        }
+    private fun resetEmployeesWorkCount() {
+        for (name in employees.keys)
+            employees[name]!!.count = 0
     }
 
     private fun isValid(i: Int): Boolean {
@@ -111,31 +98,53 @@ class Scheduler {
         }
     }
 
-    private fun setTodayOpen(schedule: TodaySchedule, random: Random) {
-        while (true) {
-            val r = random.nextInt(employees.size)
-            val name = names[r]
-            if (!employees[name]!!.used && employees[name]!!.count < 5 && name != close) {
-                schedule.open = name
-                employees[name]!!.used = true
-                employees[name]!!.count++
-                break
-            }
+    private fun rollback(week: Int) {
+        resetEmployeesWorkCount()
+        for (name in employees.keys)
+            employees[name]!!.used = false
+
+        close = ""
+        if (week != 0) {
+            val lastSaturday = startDate.plusDays((week * 7 - 1).toLong())
+            close = schedules[lastSaturday]!!.close
+
+            val lastSaturdaySchedule = schedules[lastSaturday]!!
+            employees[lastSaturdaySchedule.close]!!.used = true
         }
     }
 
-    private fun setTodayClose(schedule: TodaySchedule, random: Random) {
+    private fun setTodayOpen(schedule: TodaySchedule) {
         while (true) {
-            val r = random.nextInt(employees.size)
+            val r = Random.nextInt(employees.size)
             val name = names[r]
-            if (!employees[names[r]]!!.used && employees[name]!!.count < 5) {
-                schedule.close = name
+
+            if (!employees[name]!!.used && name != close && employees[name]!!.count < 5 && name != close) {
                 employees[name]!!.used = true
                 employees[name]!!.count++
+                schedule.open = name
+                break
+            }
+        }
+        if (close.isNotEmpty())
+            employees[close]!!.used = false
+    }
+
+    private fun setTodayClose(schedule: TodaySchedule) {
+        while (true) {
+            val r = Random.nextInt(employees.size)
+            val name = names[r]
+            if (!employees[name]!!.used && employees[name]!!.count < 5) {
+                employees[name]!!.used = true
+                employees[name]!!.count++
+                schedule.close = name
                 close = name
                 break
             }
         }
+
+        employees[schedule.open]!!.used = false
+        if (schedule.rest.isNotEmpty())
+            employees[schedule.rest]!!.used = false
     }
 
     private fun isCountEquals(count: Int): Boolean {
@@ -144,13 +153,6 @@ class Scheduler {
                 return true
         }
         return false
-    }
-
-    private fun printEmployeesStatus() {
-        for (name in employees.keys)
-            print("$name used: ${employees[name]!!.used} count: ${employees[name]!!.count}    ")
-        println()
-        println()
     }
 
     fun printScheduler() {
@@ -169,7 +171,6 @@ class Scheduler {
             println()
             println()
         }
-        println()
         println()
     }
 }
