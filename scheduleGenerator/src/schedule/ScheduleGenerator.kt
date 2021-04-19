@@ -16,6 +16,7 @@ fun main() {
     }
 
     val scheduler = Scheduler()
+    scheduler.loadData()
     scheduler.setSchedules()
     scheduler.printScheduler()
 }
