@@ -4,7 +4,7 @@ import dto.ScheduleDto
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import schedule.TodaySchedule
+import schedule.Schedule
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.time.LocalDate
@@ -74,7 +74,7 @@ class DataIO {
         }
     }
 
-    fun printOpenSchedules(schedules: Map<LocalDate, TodaySchedule>, week: Int, startDate: LocalDate) {
+    fun printOpenSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
         val currentRow = outputSheet.createRow(week * 6 + 1)
         val cell = currentRow.createCell(0)
         cell.setCellValue("오픈")
@@ -86,7 +86,7 @@ class DataIO {
         }
     }
 
-    fun printMidSchedules(schedules: Map<LocalDate, TodaySchedule>, week: Int, startDate: LocalDate) {
+    fun printMidSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
         val currentRow = outputSheet.createRow(week * 6 + 2)
         val cell = currentRow.createCell(0)
         cell.setCellValue("미드")
@@ -98,7 +98,7 @@ class DataIO {
         }
     }
 
-    fun printCloseSchedules(schedules: Map<LocalDate, TodaySchedule>, week: Int, startDate: LocalDate) {
+    fun printCloseSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
         val currentRow = outputSheet.createRow(week * 6 + 3)
         val cell = currentRow.createCell(0)
         cell.setCellValue("마감")
@@ -110,7 +110,7 @@ class DataIO {
         }
     }
 
-    fun printRestSchedules(schedules: Map<LocalDate, TodaySchedule>, week: Int, startDate: LocalDate) {
+    fun printRestSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
         val currentRow = outputSheet.createRow(week * 6 + 4)
         val cell = currentRow.createCell(0)
         cell.setCellValue("휴무")
