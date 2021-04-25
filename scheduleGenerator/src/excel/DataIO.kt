@@ -4,8 +4,8 @@ import dto.ScheduleDto
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import schedule.Employee
-import schedule.Schedule
+import entity.Employee
+import entity.Schedule
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.time.LocalDate
@@ -66,67 +66,63 @@ class DataIO {
     }
 
     fun printDate(startDate: LocalDate, week: Int) {
-        val currentRow = outputSheet.createRow(week * 6)
+        val dateRow = outputSheet.createRow(week * 6)
         for (i in 0 until 7) {
-            val cell = currentRow.createCell(i + 1)
+            val cell = dateRow.createCell(i + 1)
             cell.setCellValue(startDate.plusDays((week * 7 + i).toLong()).toString().substring(5))
         }
     }
 
     fun printOpenSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val currentRow = outputSheet.createRow(week * 6 + 1)
-        val cell = currentRow.createCell(0)
-        cell.setCellValue("오픈")
+        val openRow = outputSheet.createRow(week * 6 + 1)
+        openRow.createCell(0).setCellValue("오픈")
 
         for (i in 0 until 7) {
-            val cell = currentRow.createCell(i + 1)
+            val cell = openRow.createCell(i + 1)
             val date = startDate.plusDays((week * 7 + i).toLong())
             cell.setCellValue(schedules[date]!!.open)
         }
     }
 
     fun printMidSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val currentRow = outputSheet.createRow(week * 6 + 2)
-        val cell = currentRow.createCell(0)
-        cell.setCellValue("미드")
+        val midRow = outputSheet.createRow(week * 6 + 2)
+        midRow.createCell(0).setCellValue("미드")
 
         for (i in 0 until 7) {
-            val cell = currentRow.createCell(i + 1)
+            val cell = midRow.createCell(i + 1)
             val date = startDate.plusDays((week * 7 + i).toLong())
             cell.setCellValue(schedules[date]!!.mid)
         }
     }
 
     fun printCloseSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val currentRow = outputSheet.createRow(week * 6 + 3)
-        val cell = currentRow.createCell(0)
-        cell.setCellValue("마감")
+        val closeRow = outputSheet.createRow(week * 6 + 3)
+        closeRow.createCell(0).setCellValue("마감")
 
         for (i in 0 until 7) {
-            val cell = currentRow.createCell(i + 1)
+            val cell = closeRow.createCell(i + 1)
             val date = startDate.plusDays((week * 7 + i).toLong())
             cell.setCellValue(schedules[date]!!.close)
         }
     }
 
     fun printRestSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val currentRow = outputSheet.createRow(week * 6 + 4)
-        val cell = currentRow.createCell(0)
-        cell.setCellValue("휴무")
+        val restRow = outputSheet.createRow(week * 6 + 4)
+        restRow.createCell(0).setCellValue("휴무")
 
         for (i in 0 until 7) {
-            val cell = currentRow.createCell(i + 1)
+            val cell = restRow.createCell(i + 1)
             val date = startDate.plusDays((week * 7 + i).toLong())
             cell.setCellValue(schedules[date]!!.rest)
         }
     }
 
     fun printTotalWorkCount(employees: Map<String, Employee>) {
-        val currentRow = outputSheet.getRow(6)
-        currentRow.createCell(10).setCellValue("오픈")
-        currentRow.createCell(11).setCellValue("미드")
-        currentRow.createCell(12).setCellValue("마감")
-        currentRow.createCell(13).setCellValue("휴무")
+        val timeRow = outputSheet.getRow(6)
+        timeRow.createCell(10).setCellValue("오픈")
+        timeRow.createCell(11).setCellValue("미드")
+        timeRow.createCell(12).setCellValue("마감")
+        timeRow.createCell(13).setCellValue("휴무")
 
         var rowIndex = 7
         for (name in employees.keys) {

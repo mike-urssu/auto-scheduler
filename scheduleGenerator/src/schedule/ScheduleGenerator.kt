@@ -1,5 +1,8 @@
 package schedule
 
+import entity.Employee
+import entity.Schedule
+import entity.Time
 import excel.DataIO
 import java.time.LocalDate
 import kotlin.random.Random
@@ -23,7 +26,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 엑셀 파일에서 사용자가 초기에 설정한 미드, 휴무 날짜를 schedules에 초기화
+     * 엑셀 파일로부터 사용자가 초기에 설정한 미드, 휴무 날짜를 schedules에 초기화
      */
     fun loadData() {
         setDefaultDates(3, Time.MID)
@@ -51,9 +54,6 @@ class ScheduleGenerator {
             while (!setWeekSchedules(i));
     }
 
-    /**
-     * 일주일 단위 스케줄 생성
-     */
     private fun setWeekSchedules(week: Int): Boolean {
         resetEmployeesStatus(week)
 
@@ -66,44 +66,23 @@ class ScheduleGenerator {
             val today = startDate.plusDays((week * 7 + i).toLong())
             val todaySchedule = schedules[today]!!
 
-            /**
-             * 휴무 true
-             */
             if (todaySchedule.rest.isNotEmpty())
                 employees[todaySchedule.rest]!!.used = true
 
-            /**
-             * 오픈 설정
-             */
             if (!setTodayOpen(todaySchedule, week))
                 return false
 
-            /**
-             * 오픈 설정 후 close used = false
-             */
             if (yesterdayClose.isNotEmpty())
                 employees[yesterdayClose]!!.used = false
 
-            /**
-             * 미드 설정
-             */
             if (todaySchedule.mid.isNotEmpty())
                 employees[todaySchedule.mid]!!.count++
 
-            /**
-             * 마감 설정
-             */
             if (!setTodayClose(todaySchedule, week))
                 return false
 
-            /**
-             * 마감 설정 후 open used = false
-             */
             employees[todaySchedule.open]!!.used = false
 
-            /**
-             * 휴무 false
-             */
             if (todaySchedule.rest.isNotEmpty())
                 employees[todaySchedule.rest]!!.used = false
         }
@@ -129,7 +108,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 일주일 단위 스케줄의 유효성 검사
+     * 일주일 단위 스케줄에서 특정 index에 대해서 유효성 검사
      */
     private fun isValid(i: Int): Boolean {
         return when (i) {
@@ -149,7 +128,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 해당 주차 스케줄이 유효하지 않으면 초기 상태로 초기화
+     * 해당 주차 스케줄이 유효하지 않으면 해당 주차 스케줄을 초기 상태로 초기화
      */
     private fun rollback(week: Int) {
         resetEmployeesStatus(week)
@@ -166,7 +145,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 해당 날짜에 오픈할 직원을 초기화
+     * 해당 날짜에 오픈할 직원을 저장
      */
     private fun setTodayOpen(schedule: Schedule, week: Int): Boolean {
         val startAt = System.currentTimeMillis()
@@ -190,7 +169,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 해당 날짜에 마감할 직원을 초기화
+     * 해당 날짜에 마감할 직원을 저장
      */
     private fun setTodayClose(schedule: Schedule, week: Int): Boolean {
         val startAt = System.currentTimeMillis()
@@ -215,7 +194,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 한달동안 직원이 오픈, 미드, 마감, 휴무한 횟수를 초기화
+     * 한달동안 각 직원이 오픈, 미드, 마감, 휴무한 횟수를 저장
      */
     fun setTotalWorkCount() {
         for (date in schedules.keys) {

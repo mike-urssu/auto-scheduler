@@ -1,4 +1,4 @@
-package schedule
+package entity
 
 class Employee(val name: String) {
     var count: Int = 0

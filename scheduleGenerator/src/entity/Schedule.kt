@@ -1,4 +1,4 @@
-package schedule
+package entity
 
 class Schedule {
     var open: String = ""
