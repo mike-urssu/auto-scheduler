@@ -22,9 +22,12 @@ class ScheduleGenerator {
             schedules[startDate.plusDays(i.toLong())] = Schedule()
     }
 
+    /**
+     * 엑셀 파일에서 사용자가 초기에 설정한 미드, 휴무 날짜를 schedules에 초기화
+     */
     fun loadData() {
-        setDefaultDates(4, Time.MID)
-        setDefaultDates(6, Time.REST)
+        setDefaultDates(3, Time.MID)
+        setDefaultDates(4, Time.REST)
     }
 
     private fun setDefaultDates(rowIndex: Int, time: Time) {
@@ -40,13 +43,19 @@ class ScheduleGenerator {
         }
     }
 
+    /**
+     * 한달 단위 스케줄을 일주일 단위로 생성
+     */
     fun setSchedules() {
         for (i in 0 until week)
             while (!setWeekSchedules(i));
     }
 
+    /**
+     * 일주일 단위 스케줄 생성
+     */
     private fun setWeekSchedules(week: Int): Boolean {
-        resetEmployeesWorkCount(week)
+        resetEmployeesStatus(week)
 
         for (i in 0 until 7) {
             if (!isValid(i)) {
@@ -56,7 +65,6 @@ class ScheduleGenerator {
 
             val today = startDate.plusDays((week * 7 + i).toLong())
             val todaySchedule = schedules[today]!!
-            println("date: $today")
 
             /**
              * 휴무 true
@@ -67,9 +75,8 @@ class ScheduleGenerator {
             /**
              * 오픈 설정
              */
-            setTodayOpen(todaySchedule, week)
-            println("open: ${todaySchedule.open}")
-            printStatus()
+            if (!setTodayOpen(todaySchedule, week))
+                return false
 
             /**
              * 오픈 설정 후 close used = false
@@ -82,15 +89,12 @@ class ScheduleGenerator {
              */
             if (todaySchedule.mid.isNotEmpty())
                 employees[todaySchedule.mid]!!.count++
-            println("mid: ${todaySchedule.mid}")
-            printStatus()
 
             /**
              * 마감 설정
              */
-            setTodayClose(todaySchedule, week)
-            println("close: ${todaySchedule.close}")
-            printStatus()
+            if (!setTodayClose(todaySchedule, week))
+                return false
 
             /**
              * 마감 설정 후 open used = false
@@ -102,13 +106,14 @@ class ScheduleGenerator {
              */
             if (todaySchedule.rest.isNotEmpty())
                 employees[todaySchedule.rest]!!.used = false
-            println("rest: ${todaySchedule.rest}")
-            printStatus()
         }
         return true
     }
 
-    private fun resetEmployeesWorkCount(week: Int) {
+    /**
+     * 직원의 일한 횟수, 근무 가능 여부를 초기화
+     */
+    private fun resetEmployeesStatus(week: Int) {
         for (name in employees.keys) {
             employees[name]!!.count = 0
             employees[name]!!.used = false
@@ -123,6 +128,9 @@ class ScheduleGenerator {
         }
     }
 
+    /**
+     * 일주일 단위 스케줄의 유효성 검사
+     */
     private fun isValid(i: Int): Boolean {
         return when (i) {
             4 -> !isCountEquals(0) && !isCountEquals(1)     // (0, 4, 5), {(1, 4, 4), (1, 3, 5)}
@@ -132,9 +140,19 @@ class ScheduleGenerator {
         }
     }
 
+    private fun isCountEquals(count: Int): Boolean {
+        for (name in employees.keys) {
+            if (employees[name]!!.count == count)
+                return true
+        }
+        return false
+    }
+
+    /**
+     * 해당 주차 스케줄이 유효하지 않으면 초기 상태로 초기화
+     */
     private fun rollback(week: Int) {
-        println("rollback week: $week")
-        resetEmployeesWorkCount(week)
+        resetEmployeesStatus(week)
 
         for (i in 0 until 7) {
             val date = startDate.plusDays((week * 7 + i).toLong())
@@ -147,12 +165,17 @@ class ScheduleGenerator {
         loadData()
     }
 
-    private fun setTodayOpen(schedule: Schedule, week: Int) {
+    /**
+     * 해당 날짜에 오픈할 직원을 초기화
+     */
+    private fun setTodayOpen(schedule: Schedule, week: Int): Boolean {
         val startAt = System.currentTimeMillis()
         while (true) {
             val endAt = System.currentTimeMillis()
-            if (endAt - startAt > 1000)
+            if (endAt - startAt > 1000) {
                 rollback(week)
+                return false
+            }
             val r = Random.nextInt(employees.size)
             val name = names[r]
             val employee = employees[name]!!
@@ -163,14 +186,20 @@ class ScheduleGenerator {
                 break
             }
         }
+        return true
     }
 
-    private fun setTodayClose(schedule: Schedule, week: Int) {
+    /**
+     * 해당 날짜에 마감할 직원을 초기화
+     */
+    private fun setTodayClose(schedule: Schedule, week: Int): Boolean {
         val startAt = System.currentTimeMillis()
         while (true) {
             val endAt = System.currentTimeMillis()
-            if (endAt - startAt > 1000)
+            if (endAt - startAt > 1000) {
                 rollback(week)
+                return false
+            }
             val r = Random.nextInt(employees.size)
             val name = names[r]
             val employee = employees[name]!!
@@ -182,17 +211,28 @@ class ScheduleGenerator {
                 break
             }
         }
+        return true
     }
 
-    private fun isCountEquals(count: Int): Boolean {
-        for (name in employees.keys) {
-            if (employees[name]!!.count == count)
-                return true
+    /**
+     * 한달동안 직원이 오픈, 미드, 마감, 휴무한 횟수를 초기화
+     */
+    fun setTotalWorkCount() {
+        for (date in schedules.keys) {
+            val today = schedules[date]!!
+            employees[today.open]!!.open++
+            if (today.mid.isNotEmpty())
+                employees[today.mid]!!.mid++
+            employees[today.close]!!.close++
+            if (today.rest.isNotEmpty())
+                employees[today.rest]!!.rest++
         }
-        return false
     }
 
-    fun printScheduler() {
+    /**
+     * 한달 단위 스케줄을 excel 파일로 출력
+     */
+    fun printMonthSchedule() {
         dataIO.readyToPrint()
         for (i in 0 until week) {
             dataIO.printDate(startDate, i)
@@ -201,13 +241,7 @@ class ScheduleGenerator {
             dataIO.printCloseSchedules(schedules, i, startDate)
             dataIO.printRestSchedules(schedules, i, startDate)
         }
+        dataIO.printTotalWorkCount(employees)
         dataIO.printScheduleFile()
-    }
-
-    private fun printStatus() {
-        for (name in employees.keys) {
-            println("$name ${employees[name]!!.used} ${employees[name]!!.count}")
-        }
-        println()
     }
 }

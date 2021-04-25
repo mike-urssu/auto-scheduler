@@ -10,13 +10,16 @@ fun main() {
     val expireAt = LocalDate.parse(expiration.subSequence(0, expiration.length), DateTimeFormatter.ISO_DATE)
 
     if (today > expireAt) {
-        println("사용기간이 종료되었습니다.")
-        println("관리자에게 문의하세요.")
+        println("**********************************")
+        println("***    사용기간이 만료되었습니다   ***")
+        println("***    사용기간을 갱신해주십시오   ***")
+        println("**********************************")
         return
     }
 
     val scheduler = ScheduleGenerator()
     scheduler.loadData()
     scheduler.setSchedules()
-    scheduler.printScheduler()
+    scheduler.setTotalWorkCount()
+    scheduler.printMonthSchedule()
 }

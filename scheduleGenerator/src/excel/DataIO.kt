@@ -4,6 +4,7 @@ import dto.ScheduleDto
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import schedule.Employee
 import schedule.Schedule
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -19,7 +20,7 @@ class DataIO {
     lateinit var fileOutputStream: FileOutputStream
 
     init {
-        val name = "scheduler.xlsx"
+        val name = "input.xlsx"
         val fileInputStream = FileInputStream(path + name)
         inputWorkbook = XSSFWorkbook(fileInputStream)
         inputSheet = inputWorkbook.getSheetAt(0)
@@ -46,25 +47,23 @@ class DataIO {
     }
 
     fun getSchedules(index: Int): List<ScheduleDto> {
-        val midSchedules = ArrayList<ScheduleDto>()
+        val schedules = ArrayList<ScheduleDto>()
         val row = inputSheet.getRow(index)
         for (i in 1 until row.physicalNumberOfCells) {
             val cell = row.getCell(i).stringCellValue
             val name = cell.split(",")[0]
             val date = cell.split(",")[1]
-            val midScheduleDto = ScheduleDto(name, date)
-            midSchedules.add(midScheduleDto)
+            schedules.add(ScheduleDto(name, date))
         }
-        return midSchedules
+        return schedules
     }
 
     fun readyToPrint() {
         outputWorkbook = XSSFWorkbook()
         outputSheet = outputWorkbook.createSheet("schedule")
-        val name = "schedule.xlsx"
+        val name = "output.xlsx"
         fileOutputStream = FileOutputStream(path + name)
     }
-
 
     fun printDate(startDate: LocalDate, week: Int) {
         val currentRow = outputSheet.createRow(week * 6)
@@ -119,6 +118,24 @@ class DataIO {
             val cell = currentRow.createCell(i + 1)
             val date = startDate.plusDays((week * 7 + i).toLong())
             cell.setCellValue(schedules[date]!!.rest)
+        }
+    }
+
+    fun printTotalWorkCount(employees: Map<String, Employee>) {
+        val currentRow = outputSheet.getRow(6)
+        currentRow.createCell(10).setCellValue("오픈")
+        currentRow.createCell(11).setCellValue("미드")
+        currentRow.createCell(12).setCellValue("마감")
+        currentRow.createCell(13).setCellValue("휴무")
+
+        var rowIndex = 7
+        for (name in employees.keys) {
+            val currentRow = outputSheet.getRow(rowIndex++)
+            currentRow.createCell(9).setCellValue(name)
+            currentRow.createCell(10).setCellValue(employees[name]!!.open.toString())
+            currentRow.createCell(11).setCellValue(employees[name]!!.mid.toString())
+            currentRow.createCell(12).setCellValue(employees[name]!!.close.toString())
+            currentRow.createCell(13).setCellValue(employees[name]!!.rest.toString())
         }
     }
 
