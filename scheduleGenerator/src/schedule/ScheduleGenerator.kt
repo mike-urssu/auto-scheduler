@@ -17,17 +17,12 @@ class ScheduleGenerator {
     init {
         for (name in names)
             employees[name] = Employee(name)
-
         schedules = linkedMapOf()
         for (i in 0 until week * 7)
             schedules[startDate.plusDays(i.toLong())] = Schedule()
     }
 
     fun loadData() {
-//        this.setOpenDates()
-//        this.setMidDates()
-//        this.setCloseDates()
-//        this.setRestDates()
         setDefaultDates(4, Time.MID)
         setDefaultDates(6, Time.REST)
     }
@@ -42,38 +37,6 @@ class ScheduleGenerator {
                 Time.CLOSE -> todaySchedule.close = defaultSchedule.name
                 else -> todaySchedule.rest = defaultSchedule.name
             }
-        }
-    }
-
-    private fun setOpenDates() {
-        val openSchedules = dataIO.getSchedules(3)
-        for (openSchedule in openSchedules) {
-            val schedule = schedules[openSchedule.date]!!
-            schedule.open = openSchedule.name
-        }
-    }
-
-    private fun setMidDates() {
-        val midSchedules = dataIO.getSchedules(4)
-        for (midSchedule in midSchedules) {
-            val schedule = schedules[midSchedule.date]!!
-            schedule.mid = midSchedule.name
-        }
-    }
-
-    private fun setCloseDates() {
-        val closeSchedules = dataIO.getSchedules(5)
-        for (closeSchedule in closeSchedules) {
-            val schedule = schedules[closeSchedule.date]!!
-            schedule.close = closeSchedule.name
-        }
-    }
-
-    private fun setRestDates() {
-        val restSchedules = dataIO.getSchedules(6)
-        for (restSchedule in restSchedules) {
-            val schedule = schedules[restSchedule.date]!!
-            schedule.rest = restSchedule.name
         }
     }
 
@@ -93,6 +56,7 @@ class ScheduleGenerator {
 
             val today = startDate.plusDays((week * 7 + i).toLong())
             val todaySchedule = schedules[today]!!
+            println("date: $today")
 
             /**
              * 휴무 true
@@ -103,7 +67,9 @@ class ScheduleGenerator {
             /**
              * 오픈 설정
              */
-            setTodayOpen(todaySchedule)
+            setTodayOpen(todaySchedule, week)
+            println("open: ${todaySchedule.open}")
+            printStatus()
 
             /**
              * 오픈 설정 후 close used = false
@@ -116,11 +82,15 @@ class ScheduleGenerator {
              */
             if (todaySchedule.mid.isNotEmpty())
                 employees[todaySchedule.mid]!!.count++
+            println("mid: ${todaySchedule.mid}")
+            printStatus()
 
             /**
              * 마감 설정
              */
-            setTodayClose(todaySchedule)
+            setTodayClose(todaySchedule, week)
+            println("close: ${todaySchedule.close}")
+            printStatus()
 
             /**
              * 마감 설정 후 open used = false
@@ -132,6 +102,8 @@ class ScheduleGenerator {
              */
             if (todaySchedule.rest.isNotEmpty())
                 employees[todaySchedule.rest]!!.used = false
+            println("rest: ${todaySchedule.rest}")
+            printStatus()
         }
         return true
     }
@@ -153,14 +125,15 @@ class ScheduleGenerator {
 
     private fun isValid(i: Int): Boolean {
         return when (i) {
-            4 -> !isCountEquals(0)
-            5 -> !isCountEquals(1) && !isCountEquals(2)
+            4 -> !isCountEquals(0) && !isCountEquals(1)     // (0, 4, 5), {(1, 4, 4), (1, 3, 5)}
+            5 -> !isCountEquals(2) // && !isCountEquals(3)     // (2, 4, 5), (3, 3, 5)
             6 -> !isCountEquals(3)
             else -> true
         }
     }
 
     private fun rollback(week: Int) {
+        println("rollback week: $week")
         resetEmployeesWorkCount(week)
 
         for (i in 0 until 7) {
@@ -174,15 +147,12 @@ class ScheduleGenerator {
         loadData()
     }
 
-    private fun setTodayOpen(schedule: Schedule) {
-        if (schedule.open.isNotEmpty()) {
-            val employee = employees[schedule.open]!!
-            employee.used = true
-            employee.count++
-            return
-        }
-
+    private fun setTodayOpen(schedule: Schedule, week: Int) {
+        val startAt = System.currentTimeMillis()
         while (true) {
+            val endAt = System.currentTimeMillis()
+            if (endAt - startAt > 1000)
+                rollback(week)
             val r = Random.nextInt(employees.size)
             val name = names[r]
             val employee = employees[name]!!
@@ -195,15 +165,12 @@ class ScheduleGenerator {
         }
     }
 
-    private fun setTodayClose(schedule: Schedule) {
-        if (schedule.close.isNotEmpty()) {
-            val employee = employees[schedule.close]!!
-            employee.used = true
-            employee.count++
-            return
-        }
-
+    private fun setTodayClose(schedule: Schedule, week: Int) {
+        val startAt = System.currentTimeMillis()
         while (true) {
+            val endAt = System.currentTimeMillis()
+            if (endAt - startAt > 1000)
+                rollback(week)
             val r = Random.nextInt(employees.size)
             val name = names[r]
             val employee = employees[name]!!
@@ -227,7 +194,6 @@ class ScheduleGenerator {
 
     fun printScheduler() {
         dataIO.readyToPrint()
-
         for (i in 0 until week) {
             dataIO.printDate(startDate, i)
             dataIO.printOpenSchedules(schedules, i, startDate)
@@ -235,24 +201,13 @@ class ScheduleGenerator {
             dataIO.printCloseSchedules(schedules, i, startDate)
             dataIO.printRestSchedules(schedules, i, startDate)
         }
+        dataIO.printScheduleFile()
+    }
 
-//        for (i in 0 until week) {
-//            for (j in 0 until 7) {
-//                val today = startDate.plusDays((i * 7 + j).toLong())
-//                print("date: $today     ")
-//                val todayEmployee = schedules[today]!!
-//                print("open: ${todayEmployee.open}   mid: ${todayEmployee.mid}    close: ${todayEmployee.close}    rest: ${todayEmployee.rest}")
-//                println()
-//            }
-//
-//            for (name in employees.keys) {
-//                print("${employees[name]!!.name}: ${employees[name]!!.count}    ")
-//            }
-//            println()
-//            println()
-//        }
-//        println()
-
-//        dataIO.printScheduleFile()
+    private fun printStatus() {
+        for (name in employees.keys) {
+            println("$name ${employees[name]!!.used} ${employees[name]!!.count}")
+        }
+        println()
     }
 }
