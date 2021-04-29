@@ -72,8 +72,10 @@ class ScheduleGenerator {
             if (!setTodayOpen(todaySchedule, week))
                 return false
 
-            if (yesterdayClose.isNotEmpty())
-                employees[yesterdayClose]!!.used = false
+            if (yesterdayClose.isNotEmpty()) {
+                if (yesterdayClose != todaySchedule.rest)
+                    employees[yesterdayClose]!!.used = false
+            }
 
             if (todaySchedule.mid.isNotEmpty())
                 employees[todaySchedule.mid]!!.count++

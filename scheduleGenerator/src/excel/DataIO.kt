@@ -1,11 +1,11 @@
 package excel
 
 import dto.ScheduleDto
+import entity.Employee
+import entity.Schedule
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import entity.Employee
-import entity.Schedule
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -16,7 +16,6 @@ class DataIO {
     private val path = "C:/projects/files/scheduler/"
     private var inputWorkbook: Workbook
     private var inputSheet: Sheet
-
     lateinit var outputWorkbook: Workbook
     lateinit var outputSheet: Sheet
     lateinit var fileOutputStream: FileOutputStream
@@ -28,53 +27,76 @@ class DataIO {
             inputWorkbook = XSSFWorkbook(fileInputStream)
             inputSheet = inputWorkbook.getSheetAt(0)
         } catch (e: FileNotFoundException) {
-            println("엑셀 파일의 위치가 C:/projects/files/scheduler 에 있는지 확인하세요...")
+            println("C:/projects/files/scheduler 폴더에 엑셀 파일이 존재하지 않습니다.\n")
+            println("엑셀 파일이 해당 위치에 있는지 확인하세요.\n")
+            println("프로그램을 종료합니다.\n")
             exitProcess(-1)
         }
     }
 
     fun getNames(): List<String> {
-        val names = ArrayList<String>()
-        val row = inputSheet.getRow(0)
-        for (i in 1 until row.physicalNumberOfCells) {
-            if(row.getCell(i) == null) {
-                throw RuntimeException("이름을 읽어올 수 없습니다.\n형식이 일치하는지 확인하세요.\n프로그램을 종료합니다.")
+        try {
+            val names = ArrayList<String>()
+            val row = inputSheet.getRow(0)
+            for (i in 1 until row.physicalNumberOfCells) {
+                val name = row.getCell(i).stringCellValue
+                names.add(name)
             }
-            val name = row.getCell(i).stringCellValue
-            names.add(name)
+
+            if (names.size != 3)
+                throw Exception()
+
+            return names
+        } catch (e: Exception) {
+            println("직원 이름이 유효하지 않습니다.")
+            println("프로그램을 종료합니다.")
+            exitProcess(-1)
         }
-        return names
     }
 
     fun getStartDate(): LocalDate {
-        val row = inputSheet.getRow(1)
-        if(row.getCell(1) == null) {
-            throw RuntimeException("시작날짜를 읽어올 수 없습니다.\n형식이 일치하는지 확인하세요.\n프로그램을 종료합니다.")
+        try {
+            val row = inputSheet.getRow(1)
+            return row.getCell(1).localDateTimeCellValue.toLocalDate()
+        } catch (e: Exception) {
+            println("시작 날짜가 유효하지 않습니다.")
+            println("프로그램을 종료합니다.")
+            exitProcess(-1)
         }
-        return row.getCell(1).localDateTimeCellValue.toLocalDate()
     }
 
     fun getWeek(): Int {
-        val row = inputSheet.getRow(2)
-        if(row.getCell(1) == null) {
-            throw RuntimeException("이름을 읽어올 수 없습니다.\n형식이 일치하는지 확인하세요.\n프로그램을 종료합니다.")
+        try {
+            val row = inputSheet.getRow(2)
+            return row.getCell(1).numericCellValue.toInt()
+        } catch (e: Exception) {
+            println("기간이 유효하지 않습니다.")
+            println("프로그램을 종료합니다.")
+            exitProcess(-1)
         }
-        return row.getCell(1).numericCellValue.toInt()
     }
 
     fun getSchedules(index: Int): List<ScheduleDto> {
-        val schedules = ArrayList<ScheduleDto>()
-        val row = inputSheet.getRow(index)
-        for (i in 1 until row.physicalNumberOfCells) {
-            if(row.getCell(i) == null) {
-                throw RuntimeException("파일 형식이 잘못됐습니다.\n프로그램을 종료합니다.")
+        try {
+            val schedules = ArrayList<ScheduleDto>()
+            val row = inputSheet.getRow(index)
+            for (i in 1 until row.physicalNumberOfCells) {
+                val cell = row.getCell(i).stringCellValue
+                val name = cell.split(",")[0]
+                val date = cell.split(",")[1]
+                schedules.add(ScheduleDto(name, date))
             }
-            val cell = row.getCell(i).stringCellValue
-            val name = cell.split(",")[0]
-            val date = cell.split(",")[1]
-            schedules.add(ScheduleDto(name, date))
+            return schedules
+        } catch (e: Exception) {
+            if (index == 3) {
+                println("미드 날짜가 유효하지 않습니다.")
+                println("프로그램을 종료합니다.")
+            } else {
+                println("휴무 날짜가 유효하지 않습니다.")
+                println("프로그램을 종료합니다.")
+            }
+            exitProcess(-1)
         }
-        return schedules
     }
 
     fun readyToPrint() {
