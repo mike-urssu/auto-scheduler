@@ -7,29 +7,39 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import entity.Employee
 import entity.Schedule
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.time.LocalDate
+import kotlin.system.exitProcess
 
 class DataIO {
     private val path = "C:/projects/files/scheduler/"
-    private val inputWorkbook: Workbook
-    private val inputSheet: Sheet
+    private var inputWorkbook: Workbook
+    private var inputSheet: Sheet
 
     lateinit var outputWorkbook: Workbook
     lateinit var outputSheet: Sheet
     lateinit var fileOutputStream: FileOutputStream
 
     init {
-        val name = "input.xlsx"
-        val fileInputStream = FileInputStream(path + name)
-        inputWorkbook = XSSFWorkbook(fileInputStream)
-        inputSheet = inputWorkbook.getSheetAt(0)
+        try {
+            val name = "input.xlsx"
+            val fileInputStream = FileInputStream(path + name)
+            inputWorkbook = XSSFWorkbook(fileInputStream)
+            inputSheet = inputWorkbook.getSheetAt(0)
+        } catch (e: FileNotFoundException) {
+            println("엑셀 파일의 위치가 C:/projects/files/scheduler 에 있는지 확인하세요...")
+            exitProcess(-1)
+        }
     }
 
     fun getNames(): List<String> {
         val names = ArrayList<String>()
         val row = inputSheet.getRow(0)
         for (i in 1 until row.physicalNumberOfCells) {
+            if(row.getCell(i) == null) {
+                throw RuntimeException("이름을 읽어올 수 없습니다.\n형식이 일치하는지 확인하세요.\n프로그램을 종료합니다.")
+            }
             val name = row.getCell(i).stringCellValue
             names.add(name)
         }
@@ -38,11 +48,17 @@ class DataIO {
 
     fun getStartDate(): LocalDate {
         val row = inputSheet.getRow(1)
+        if(row.getCell(1) == null) {
+            throw RuntimeException("시작날짜를 읽어올 수 없습니다.\n형식이 일치하는지 확인하세요.\n프로그램을 종료합니다.")
+        }
         return row.getCell(1).localDateTimeCellValue.toLocalDate()
     }
 
     fun getWeek(): Int {
         val row = inputSheet.getRow(2)
+        if(row.getCell(1) == null) {
+            throw RuntimeException("이름을 읽어올 수 없습니다.\n형식이 일치하는지 확인하세요.\n프로그램을 종료합니다.")
+        }
         return row.getCell(1).numericCellValue.toInt()
     }
 
@@ -50,6 +66,9 @@ class DataIO {
         val schedules = ArrayList<ScheduleDto>()
         val row = inputSheet.getRow(index)
         for (i in 1 until row.physicalNumberOfCells) {
+            if(row.getCell(i) == null) {
+                throw RuntimeException("파일 형식이 잘못됐습니다.\n프로그램을 종료합니다.")
+            }
             val cell = row.getCell(i).stringCellValue
             val name = cell.split(",")[0]
             val date = cell.split(",")[1]

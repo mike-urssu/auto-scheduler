@@ -37,3 +37,4 @@ outTmp/
 /test.output
 /kotlin-native/dist
 lib/
+scheduleGenerator/src/META-INF/
