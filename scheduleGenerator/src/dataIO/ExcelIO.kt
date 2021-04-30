@@ -1,4 +1,4 @@
-package excel
+package dataIO
 
 import dto.ScheduleDto
 import entity.Employee
@@ -12,7 +12,7 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 import kotlin.system.exitProcess
 
-class DataIO {
+class ExcelIO {
     private val path = "C:/projects/files/scheduler/"
     private var inputWorkbook: Workbook
     private var inputSheet: Sheet
@@ -29,7 +29,9 @@ class DataIO {
         } catch (e: FileNotFoundException) {
             println("C:/projects/files/scheduler 폴더에 엑셀 파일이 존재하지 않습니다.\n")
             println("엑셀 파일이 해당 위치에 있는지 확인하세요.\n")
+            Thread.sleep(1000)
             println("프로그램을 종료합니다.\n")
+            Thread.sleep(1000)
             exitProcess(-1)
         }
     }
@@ -49,7 +51,9 @@ class DataIO {
             return names
         } catch (e: Exception) {
             println("직원 이름이 유효하지 않습니다.")
+            Thread.sleep(1000)
             println("프로그램을 종료합니다.")
+            Thread.sleep(1000)
             exitProcess(-1)
         }
     }
@@ -60,7 +64,9 @@ class DataIO {
             return row.getCell(1).localDateTimeCellValue.toLocalDate()
         } catch (e: Exception) {
             println("시작 날짜가 유효하지 않습니다.")
+            Thread.sleep(1000)
             println("프로그램을 종료합니다.")
+            Thread.sleep(1000)
             exitProcess(-1)
         }
     }
@@ -71,7 +77,9 @@ class DataIO {
             return row.getCell(1).numericCellValue.toInt()
         } catch (e: Exception) {
             println("기간이 유효하지 않습니다.")
+            Thread.sleep(1000)
             println("프로그램을 종료합니다.")
+            Thread.sleep(1000)
             exitProcess(-1)
         }
     }
@@ -88,13 +96,13 @@ class DataIO {
             }
             return schedules
         } catch (e: Exception) {
-            if (index == 3) {
+            if (index == 3)
                 println("미드 날짜가 유효하지 않습니다.")
-                println("프로그램을 종료합니다.")
-            } else {
+            else
                 println("휴무 날짜가 유효하지 않습니다.")
-                println("프로그램을 종료합니다.")
-            }
+            Thread.sleep(1000)
+            println("프로그램을 종료합니다.")
+            Thread.sleep(1000)
             exitProcess(-1)
         }
     }
