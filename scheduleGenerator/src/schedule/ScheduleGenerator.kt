@@ -1,18 +1,18 @@
 package schedule
 
+import dataIO.ExcelIO
 import entity.Employee
 import entity.Schedule
 import entity.Time
-import excel.DataIO
 import java.time.LocalDate
 import kotlin.random.Random
 
 class ScheduleGenerator {
-    private var dataIO = DataIO()
-    private val names = dataIO.getNames()
+    private var excelIO = ExcelIO()
+    private val names = excelIO.getNames()
     private var employees = HashMap<String, Employee>()
-    private var startDate = dataIO.getStartDate()
-    private var week = dataIO.getWeek()
+    private var startDate = excelIO.getStartDate()
+    private var week = excelIO.getWeek()
 
     private var schedules: LinkedHashMap<LocalDate, Schedule>
     private var yesterdayClose = ""
@@ -34,7 +34,7 @@ class ScheduleGenerator {
     }
 
     private fun setDefaultDates(rowIndex: Int, time: Time) {
-        val defaultSchedules = dataIO.getSchedules(rowIndex)
+        val defaultSchedules = excelIO.getSchedules(rowIndex)
         for (defaultSchedule in defaultSchedules) {
             val todaySchedule = schedules[defaultSchedule.date]!!
             when (time) {
@@ -214,15 +214,15 @@ class ScheduleGenerator {
      * 한달 단위 스케줄을 excel 파일로 출력
      */
     fun printMonthSchedule() {
-        dataIO.readyToPrint()
+        excelIO.readyToPrint()
         for (i in 0 until week) {
-            dataIO.printDate(startDate, i)
-            dataIO.printOpenSchedules(schedules, i, startDate)
-            dataIO.printMidSchedules(schedules, i, startDate)
-            dataIO.printCloseSchedules(schedules, i, startDate)
-            dataIO.printRestSchedules(schedules, i, startDate)
+            excelIO.printDate(startDate, i)
+            excelIO.printOpenSchedules(schedules, i, startDate)
+            excelIO.printMidSchedules(schedules, i, startDate)
+            excelIO.printCloseSchedules(schedules, i, startDate)
+            excelIO.printRestSchedules(schedules, i, startDate)
         }
-        dataIO.printTotalWorkCount(employees)
-        dataIO.printScheduleFile()
+        excelIO.printTotalWorkCount(employees)
+        excelIO.printScheduleFile()
     }
 }
