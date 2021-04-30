@@ -19,14 +19,14 @@ class ScheduleGenerator {
 
     init {
         for (name in names)
-            employees[name] = Employee(name)
+            employees[name] = Employee()
         schedules = linkedMapOf()
         for (i in 0 until week * 7)
             schedules[startDate.plusDays(i.toLong())] = Schedule()
     }
 
     /**
-     * 엑셀 파일로부터 사용자가 초기에 설정한 미드, 휴무 날짜를 schedules에 초기화
+     * 엑셀 파일로부터 사용자가 초기에 설정한 미드, 휴무 날짜를 schedules 에 초기화
      */
     fun loadData() {
         setDefaultDates(3, Time.MID)
@@ -110,7 +110,7 @@ class ScheduleGenerator {
     }
 
     /**
-     * 일주일 단위 스케줄에서 특정 index에 대해서 유효성 검사
+     * 일주일 단위 스케줄에서 특정 index 에 대해서 유효성 검사
      */
     private fun isValid(i: Int): Boolean {
         return when (i) {
@@ -217,12 +217,12 @@ class ScheduleGenerator {
         excelIO.readyToPrint()
         for (i in 0 until week) {
             excelIO.printDate(startDate, i)
-            excelIO.printOpenSchedules(schedules, i, startDate)
-            excelIO.printMidSchedules(schedules, i, startDate)
-            excelIO.printCloseSchedules(schedules, i, startDate)
-            excelIO.printRestSchedules(schedules, i, startDate)
+            excelIO.printSchedules(schedules, i, startDate, Time.OPEN)
+            excelIO.printSchedules(schedules, i, startDate, Time.MID)
+            excelIO.printSchedules(schedules, i, startDate, Time.CLOSE)
+            excelIO.printSchedules(schedules, i, startDate, Time.REST)
         }
         excelIO.printTotalWorkCount(employees)
-        excelIO.printScheduleFile()
+        excelIO.exportScheduleFile()
     }
 }

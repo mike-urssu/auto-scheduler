@@ -3,6 +3,8 @@ package dataIO
 import dto.ScheduleDto
 import entity.Employee
 import entity.Schedule
+import entity.Time
+import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -16,9 +18,9 @@ class ExcelIO {
     private val path = "C:/projects/files/scheduler/"
     private var inputWorkbook: Workbook
     private var inputSheet: Sheet
-    lateinit var outputWorkbook: Workbook
-    lateinit var outputSheet: Sheet
-    lateinit var fileOutputStream: FileOutputStream
+    private lateinit var outputWorkbook: Workbook
+    private lateinit var outputSheet: Sheet
+    private lateinit var fileOutputStream: FileOutputStream
 
     init {
         try {
@@ -122,47 +124,36 @@ class ExcelIO {
         }
     }
 
-    fun printOpenSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val openRow = outputSheet.createRow(week * 6 + 1)
-        openRow.createCell(0).setCellValue("오픈")
-
-        for (i in 0 until 7) {
-            val cell = openRow.createCell(i + 1)
-            val date = startDate.plusDays((week * 7 + i).toLong())
-            cell.setCellValue(schedules[date]!!.open)
+    fun printSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate, time: Time) {
+        val row: Row
+        when (time) {
+            Time.OPEN -> {
+                row = outputSheet.createRow(week * 6 + 1)
+                row.createCell(0).setCellValue("오픈")
+            }
+            Time.MID -> {
+                row = outputSheet.createRow(week * 6 + 2)
+                row.createCell(0).setCellValue("미드")
+            }
+            Time.CLOSE -> {
+                row = outputSheet.createRow(week * 6 + 3)
+                row.createCell(0).setCellValue("마감")
+            }
+            Time.REST -> {
+                row = outputSheet.createRow(week * 6 + 4)
+                row.createCell(0).setCellValue("휴무")
+            }
         }
-    }
-
-    fun printMidSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val midRow = outputSheet.createRow(week * 6 + 2)
-        midRow.createCell(0).setCellValue("미드")
 
         for (i in 0 until 7) {
-            val cell = midRow.createCell(i + 1)
+            val cell = row.createCell(i + 1)
             val date = startDate.plusDays((week * 7 + i).toLong())
-            cell.setCellValue(schedules[date]!!.mid)
-        }
-    }
-
-    fun printCloseSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val closeRow = outputSheet.createRow(week * 6 + 3)
-        closeRow.createCell(0).setCellValue("마감")
-
-        for (i in 0 until 7) {
-            val cell = closeRow.createCell(i + 1)
-            val date = startDate.plusDays((week * 7 + i).toLong())
-            cell.setCellValue(schedules[date]!!.close)
-        }
-    }
-
-    fun printRestSchedules(schedules: Map<LocalDate, Schedule>, week: Int, startDate: LocalDate) {
-        val restRow = outputSheet.createRow(week * 6 + 4)
-        restRow.createCell(0).setCellValue("휴무")
-
-        for (i in 0 until 7) {
-            val cell = restRow.createCell(i + 1)
-            val date = startDate.plusDays((week * 7 + i).toLong())
-            cell.setCellValue(schedules[date]!!.rest)
+            when (time) {
+                Time.OPEN -> cell.setCellValue(schedules[date]!!.open)
+                Time.MID -> cell.setCellValue(schedules[date]!!.mid)
+                Time.CLOSE -> cell.setCellValue(schedules[date]!!.close)
+                Time.REST -> cell.setCellValue(schedules[date]!!.rest)
+            }
         }
     }
 
@@ -184,7 +175,7 @@ class ExcelIO {
         }
     }
 
-    fun printScheduleFile() {
+    fun exportScheduleFile() {
         outputWorkbook.write(fileOutputStream)
     }
 }
