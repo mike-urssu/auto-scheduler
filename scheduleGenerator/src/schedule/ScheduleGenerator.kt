@@ -66,6 +66,8 @@ class ScheduleGenerator {
             val today = startDate.plusDays((week * 7 + i).toLong())
             val todaySchedule = schedules[today]!!
 
+            if (todaySchedule.mid.isNotEmpty())
+                employees[todaySchedule.mid]!!.used = true
             if (todaySchedule.rest.isNotEmpty())
                 employees[todaySchedule.rest]!!.used = true
 
@@ -87,6 +89,8 @@ class ScheduleGenerator {
 
             if (todaySchedule.rest.isNotEmpty())
                 employees[todaySchedule.rest]!!.used = false
+            if (todaySchedule.mid.isNotEmpty())
+                employees[todaySchedule.mid]!!.used = false
         }
         return true
     }
