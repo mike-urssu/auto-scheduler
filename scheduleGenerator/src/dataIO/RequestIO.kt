@@ -1,6 +1,9 @@
 package dataIO
 
-import com.google.gson.JsonParser
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializer
+import dto.WorldClockApiResponse
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -11,14 +14,20 @@ import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 object RequestIO {
-
-    private val url = URL("http://worldclockapi.com/api/json/utc/now")
+    private val url = URL("http://worldtimeapi.org/api/timezone/Asia/Seoul")
     private val connection = url.openConnection() as HttpURLConnection
 
     fun getKSTServerTime(): LocalDate {
+        val gson = GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .registerTypeAdapter(
+                LocalDateTime::class.java,
+                JsonDeserializer { json, _, _ ->
+                    LocalDateTime.parse(json.asString, DateTimeFormatter.ISO_DATE_TIME)
+                }).create()
         val httpResponse = sendRequest()
-        val utc = getUTCServerTime(httpResponse)
-        return convertUTCIntoKST(utc)
+        val worldClockApiResponse = gson.fromJson(httpResponse, WorldClockApiResponse::class.java)
+        return worldClockApiResponse.datetime.toLocalDate()
     }
 
     private fun sendRequest(): String {
@@ -40,19 +49,5 @@ object RequestIO {
                 httpResponse.append(input)
         }
         return httpResponse.toString()
-    }
-
-    private fun getUTCServerTime(httpResponse: String): LocalDateTime {
-        val parsedJson = JsonParser.parseString(httpResponse)
-        val jsonObject = parsedJson.asJsonObject
-        val currentDateTime = jsonObject.asJsonObject["currentDateTime"].toString().replace("\"", "")
-        return LocalDateTime.parse(
-            currentDateTime,
-            DateTimeFormatter.ISO_DATE_TIME
-        )
-    }
-
-    private fun convertUTCIntoKST(utc: LocalDateTime): LocalDate {
-        return utc.plusHours(9).toLocalDate()
     }
 }
